@@ -1,0 +1,13 @@
+{
+    "extends": "standard",
+    "plugins": [
+      "standard"
+    ],
+
+    "globals": {
+      "document": true
+    },
+
+    "rules": {
+    }
+}
