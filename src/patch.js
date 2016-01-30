@@ -13,8 +13,10 @@ const setProps = (node, props) => {
   })
 }
 
+let walker = 0
 export const patch = (node, patches, index = 0) => {
-  const currentPatch = patches[index]
+  walker = index
+  const currentPatch = patches[walker++]
 
   if (currentPatch) {
     switch (currentPatch.type) {
@@ -37,6 +39,6 @@ export const patch = (node, patches, index = 0) => {
   if (node.childNodes.length === 0) return
 
   [...node.childNodes].forEach(child =>
-    patch(child, patches, index + 1)
+    patch(child, patches, walker)
   )
 }
