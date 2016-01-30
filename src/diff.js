@@ -39,14 +39,15 @@ let walker = 0
 export const getDiffChildren = (
   oldChildren = [],
   newChildren = [],
-  index
+  index,
+  patches
 ) => {
   walker = index
 
   const oldChildrenPatches = oldChildren.reduce((prev, oldChild, i) => {
     return Object.assign(
       prev,
-      diff(oldChild, newChildren[i], ++walker)
+      diff(oldChild, newChildren[i], ++walker, patches)
     )
   }, {})
 
@@ -55,24 +56,30 @@ export const getDiffChildren = (
     newChildren.slice(oldChildren.length).reduce((prev, newChild) => {
       return Object.assign(
         prev,
-        diff(null, newChild, index)
+        diff(null, newChild, index, patches)
       )
     }, oldChildrenPatches)
 
   return Object.assign(oldChildrenPatches, newChildrenPatches)
 }
 
-export const diff = (oldTree, newTree, index = 0) => {
-  let patches = {}
-
+export const diff = (
+  oldTree,
+  newTree,
+  index = 0,
+  patches = {}
+) => {
   if (!isExist(oldTree) && !isExist(newTree)) return
 
   if (isString(oldTree) && isString(newTree)) {
     if (oldTree !== newTree) {
-      patches[index] = {
-        type: patchType.TEXT,
-        content: newTree
-      }
+      patches[index] = [
+        ...(patches[index] || []),
+        {
+          type: patchType.TEXT,
+          content: newTree
+        }
+      ]
 
       return patches
     }
@@ -81,18 +88,24 @@ export const diff = (oldTree, newTree, index = 0) => {
     const diffProps = getDiffProps(oldTree.props, newTree.props)
 
     if (!isEmptyObject(diffProps)) {
-      patches[index] = {
-        type: patchType.PROPS,
-        props: diffProps
-      }
+      patches[index] = [
+        ...(patches[index] || []),
+        {
+          type: patchType.PROPS,
+          props: diffProps
+        }
+      ]
     }
 
   // replace node
   } else if (isExist(oldTree)) {
-    patches[index] = {
-      type: patchType.REPLACE,
-      node: newTree
-    }
+    patches[index] = [
+      ...(patches[index] || []),
+      {
+        type: patchType.REPLACE,
+        node: newTree
+      }
+    ]
 
     // becuz we do the replace child operation
     // so we dont get diff children
@@ -101,16 +114,19 @@ export const diff = (oldTree, newTree, index = 0) => {
 
   // add child
   } else {
-    patches[index] = {
-      type: patchType.ADD_CHILD,
-      node: newTree
-    }
+    patches[index] = [
+      ...(patches[index] || []),
+      {
+        type: patchType.ADD_CHILD,
+        node: newTree
+      }
+    ]
 
     return patches
   }
 
   return Object.assign(
     patches,
-    getDiffChildren(oldTree.children, newTree.children, index)
+    getDiffChildren(oldTree.children, newTree.children, index, patches)
   )
 }
