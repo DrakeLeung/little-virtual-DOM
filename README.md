@@ -1,5 +1,11 @@
 # Litter-Vitual-DOM
-Just try to implement a **simple** virtual DOM
+A **simple** virtual DOM
+
+## Usage
+```
+git clone
+npm start
+```
 
 ## Lisence
 MIT
