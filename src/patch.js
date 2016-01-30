@@ -29,7 +29,15 @@ export const patch = (node, patches, index = 0) => {
         break
 
       case patchType.REPLACE:
-        node.parentNode.replaceChild(toHTML(currentPatch.node), node)
+        if (isExist(currentPatch.node)) {
+          node.parentNode.replaceChild(toHTML(currentPatch.node), node)
+        } else {
+          node.parentNode.removeChild(node)
+        }
+        break
+
+      case patchType.ADD_CHILD:
+        node.appendChild(toHTML(currentPatch.node))
         break
 
       default:

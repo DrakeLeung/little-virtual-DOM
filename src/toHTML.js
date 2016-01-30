@@ -36,7 +36,7 @@ const toHTML = (
   if (VNode == null) return
 
   const node = createNode(VNode)
-  container.appendChild(node)
+  // container.appendChild(node)
 
   return node
 }

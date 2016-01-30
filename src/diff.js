@@ -33,10 +33,14 @@ export const getDiffProps = (oldProps, newProps) => {
   }, {})
 }
 
-// replesent cucrrent node index
+// represent cucrrent node index
 let walker = 0
 
-export const getDiffChildren = (oldChildren, newChildren, index) => {
+export const getDiffChildren = (
+  oldChildren = [],
+  newChildren = [],
+  index
+) => {
   walker = index
 
   const oldChildrenPatches = oldChildren.reduce((prev, oldChild, i) => {
@@ -46,22 +50,24 @@ export const getDiffChildren = (oldChildren, newChildren, index) => {
     )
   }, {})
 
-  // const newChildrenPatches =
-  //   newChildren.slice(oldChildren.length).reduce((prev, newChild) => {
-  //     return Object.assign(
-  //       prev,
-  //       diff(null, newChild, ++index)
-  //     )
-  //   }, oldChildrenPatches)
+  // const newChildrenPatches = {}
+  const newChildrenPatches =
+    newChildren.slice(oldChildren.length).reduce((prev, newChild) => {
+      return Object.assign(
+        prev,
+        diff(null, newChild, index)
+      )
+    }, oldChildrenPatches)
 
-  return oldChildrenPatches
+  return Object.assign(oldChildrenPatches, newChildrenPatches)
 }
 
 export const diff = (oldTree, newTree, index = 0) => {
   let patches = {}
 
-  // if both of them are text vnode
-  if (isString(oldTree) && isString(oldTree)) {
+  if (!isExist(oldTree) && !isExist(newTree)) return
+
+  if (isString(oldTree) && isString(newTree)) {
     if (oldTree !== newTree) {
       patches[index] = {
         type: patchType.TEXT,
@@ -81,14 +87,30 @@ export const diff = (oldTree, newTree, index = 0) => {
       }
     }
 
-    return Object.assign(
-      patches,
-      getDiffChildren(oldTree.children, newTree.children, index)
-    )
-  } else {
-    return patches[index] = {
+  // replace node
+  } else if (isExist(oldTree)) {
+    patches[index] = {
       type: patchType.REPLACE,
       node: newTree
     }
+
+    // becuz we do the replace child operation
+    // so we dont get diff children
+    walker += oldTree.children.length
+    return patches
+
+  // add child
+  } else {
+    patches[index] = {
+      type: patchType.ADD_CHILD,
+      node: newTree
+    }
+
+    return patches
   }
+
+  return Object.assign(
+    patches,
+    getDiffChildren(oldTree.children, newTree.children, index)
+  )
 }
